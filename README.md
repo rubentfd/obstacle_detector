@@ -226,5 +226,5 @@ _Mateusz Przybyla_
 
 ## 5. Polygons
 
-There are a few lines of code in the `obstacle_extractor.cpp` that converts the segment's into polygons and publishes a `polygons` message which contains a single `polygonArray`.
+There are a few lines of code in the `obstacle_extractor.cpp` that converts the segments into polygons and publishes a `polygons` message which contains a single `polygonArray`.
 
