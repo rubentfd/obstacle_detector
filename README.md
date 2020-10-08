@@ -21,6 +21,7 @@ The package requires [Armadillo C++](http://arma.sourceforge.net) library for co
 2. The messages
 3. Launch files
 4. The displays
+5. Polygons
 
 ## 1. The nodes and nodelets
 
@@ -222,4 +223,8 @@ For better visual effects, appropriate Rviz display for `Obstacles` messages was
 
 Author:
 _Mateusz Przybyla_
+
+## 5. Polygons
+
+There are a few lines of code in the `obstacle_extractor.cpp` that converts the segment's into polygons and publishes a `polygons` message which contains a single `polygonArray`.
 

@@ -41,6 +41,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 #include <obstacle_detector/Obstacles.h>
+#include <obstacle_detector/PolygonArray.h>
+#include <obstacle_detector/PolygonStamped.h>
 
 #include "obstacle_detector/utilities/point.h"
 #include "obstacle_detector/utilities/segment.h"
@@ -66,6 +68,7 @@ private:
   void processPoints();
   void groupPoints();
   void publishObstacles();
+  void publishPolygons();
 
   void detectSegments(const PointSet& point_set);
   void mergeSegments();
@@ -76,6 +79,8 @@ private:
   void detectCircles();
   void mergeCircles();
   bool compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle);
+  void timerCallback(const ros::TimerEvent& e);
+
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
@@ -83,7 +88,9 @@ private:
   ros::Subscriber scan_sub_;
   ros::Subscriber pcl_sub_;
   ros::Publisher obstacles_pub_;
+  ros::Publisher polygon_pub_;
   ros::ServiceServer params_srv_;
+  ros::Timer timer_;
 
   ros::Time stamp_;
   std::string base_frame_id_;
@@ -112,6 +119,9 @@ private:
   double p_max_merge_spread_;
   double p_max_circle_radius_;
   double p_radius_enlargement_;
+
+  double p_loop_rate_;
+  double p_sampling_time_;
 
   double p_min_x_limit_;
   double p_max_x_limit_;

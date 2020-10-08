@@ -138,8 +138,9 @@ void ObstaclePublisher::timerCallback(const ros::TimerEvent& e) {
   else if (p_fission_example_)
     fissionExample(t_);
 
-  if (obstacles_.circles.size() > 0)
+  if (obstacles_.circles.size() > 0){
     publishObstacles();
+  }
 }
 
 void ObstaclePublisher::calculateObstaclesPositions(double dt) {

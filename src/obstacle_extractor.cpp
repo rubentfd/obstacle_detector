@@ -72,6 +72,8 @@ ObstacleExtractor::~ObstacleExtractor() {
   nh_local_.deleteParam("min_y_limit");
   nh_local_.deleteParam("max_y_limit");
 
+  nh_local_.deleteParam("loop_rate");
+
   nh_local_.deleteParam("frame_id");
 }
 
@@ -112,6 +114,9 @@ bool ObstacleExtractor::updateParams(std_srvs::Empty::Request &req, std_srvs::Em
         pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleExtractor::pclCallback, this);
 
       obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("raw_obstacles", 10);
+      polygon_pub_ = nh_.advertise<obstacle_detector::PolygonArray>("polygons", 10);
+
+      timer_.start();
     }
     else {
       // Send empty message
@@ -120,9 +125,17 @@ bool ObstacleExtractor::updateParams(std_srvs::Empty::Request &req, std_srvs::Em
       obstacles_msg->header.stamp = ros::Time::now();
       obstacles_pub_.publish(obstacles_msg);
 
+      obstacle_detector::PolygonArrayPtr polygon_msg(new obstacle_detector::PolygonArray);
+      polygon_msg->header.frame_id = p_frame_id_;
+      polygon_msg->header.stamp = ros::Time::now();
+      polygon_pub_.publish(polygon_msg);
+
       scan_sub_.shutdown();
       pcl_sub_.shutdown();
       obstacles_pub_.shutdown();
+      polygon_pub_.shutdown();
+      
+      timer_.stop();
     }
   }
 
@@ -166,6 +179,7 @@ void ObstacleExtractor::processPoints() {
   mergeCircles();
 
   publishObstacles();
+  publishPolygons();
 
   input_points_.clear();
 }
@@ -261,6 +275,7 @@ void ObstacleExtractor::detectSegments(const PointSet& point_set) {
 
     detectSegments(subset1);
     detectSegments(subset2);
+
   } else {  // Add the segment
     if (!p_use_split_and_merge_)
       segment = fitSegment(point_set);
@@ -428,11 +443,13 @@ void ObstacleExtractor::publishObstacles() {
 
     obstacles_msg->header.frame_id = p_frame_id_;
   }
-  else
+  else{
     obstacles_msg->header.frame_id = base_frame_id_;
+  }
 
 
   for (const Segment& s : segments_) {
+
     SegmentObstacle segment;
 
     segment.first_point.x = s.first_point.x;
@@ -441,6 +458,7 @@ void ObstacleExtractor::publishObstacles() {
     segment.last_point.y = s.last_point.y;
 
     obstacles_msg->segments.push_back(segment);
+
   }
 
   for (const Circle& c : circles_) {
@@ -460,4 +478,33 @@ void ObstacleExtractor::publishObstacles() {
   }
 
   obstacles_pub_.publish(obstacles_msg);
+}
+
+void ObstacleExtractor::publishPolygons(){
+
+  obstacle_detector::PolygonArrayPtr polygon_msg(new obstacle_detector::PolygonArray);
+  polygon_msg->header.stamp = stamp_;
+  polygon_msg->header.frame_id = base_frame_id_;
+
+  for(const Segment& s : segments_){
+
+    geometry_msgs::PolygonStamped polygon;
+    geometry_msgs::Point32 c_point;
+
+    c_point.x = s.first_point.x;
+    c_point.y = s.first_point.y;
+
+    polygon.polygon.points.push_back(c_point);
+
+    c_point.x = s.last_point.x;
+    c_point.y = s.last_point.y;
+
+    polygon.polygon.points.push_back(c_point);
+    polygon_msg->polygons.push_back(polygon);
+    polygon.polygon.points.clear();
+
+  }
+
+  polygon_pub_.publish(polygon_msg);
+
 }

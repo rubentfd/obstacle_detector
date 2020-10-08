@@ -65,11 +65,11 @@ void SegmentVisual::setFrameOrientation(const Ogre::Quaternion& orientation) {
 }
 
 void SegmentVisual::setColor(float r, float g, float b, float a) {
-  line_->setColor(r, g, b, a);
+  line_->setColor(255.0f, g, b, a);
 }
 
 void SegmentVisual::setWidth(float w) {
-  line_->setLineWidth(w);
+  line_->setLineWidth(0.3f);
 }
 
 } // end namespace obstacles_display
